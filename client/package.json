@@ -1,0 +1,11 @@
+{
+  "name": "alexa-plus-client-server",
+  "version": "1.0.0",
+  "description": "Static file server for Alexa+ MCP client",
+  "main": "serve.js",
+  "type": "module",
+  "scripts": {
+    "start": "node serve.js",
+    "dev": "node serve.js"
+  }
+}

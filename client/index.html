@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alexa+ — Warm Neutrals AI Assistant & Ambient Dashboard</title>
+  <meta name="description" content="Next-gen Alexa+ powered by Model Context Protocol (MCP 2025-11-25) with Streamable HTTP, Agent Skills, Multi-Skill Orchestration, Warm Neutrals Aesthetics, and Unique Acoustic Chimes">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Interactive Golden Dust Particles Canvas -->
+  <canvas id="bgParticleCanvas" class="bg-particle-canvas"></canvas>
+
+  <!-- MCP Top Status Bar -->
+  <header class="mcp-status-bar" id="mcpStatusBar">
+    <div class="status-left">
+      <div class="status-dot" id="statusDot"></div>
+      <span class="status-label" id="statusText">Connecting to MCP Server...</span>
+      <span class="status-badge" id="statusDetails">Streamable HTTP</span>
+    </div>
+
+    <div class="status-center">
+      <div class="proto-tag">
+        <span class="material-icons-round">cable</span>
+        <span>MCP 2025-11-25</span>
+      </div>
+      <div class="proto-tag session-tag" id="protoSessionBadge" title="Current MCP Session ID">
+        <span class="material-icons-round">fingerprint</span>
+        <span id="protoSessionText">Initializing...</span>
+      </div>
+      <div class="proto-tag sse-tag" id="protoSSEBadge">
+        <span class="sse-indicator"></span>
+        <span id="protoSSEText">SSE Inactive</span>
+      </div>
+    </div>
+
+    <div class="status-right">
+      <!-- Proactive Notification Bell -->
+      <div class="notif-wrapper">
+        <button class="status-btn" id="notifBtn" onclick="toggleNotifDropdown()" title="Proactive Notifications">
+          <span class="material-icons-round">notifications</span>
+          <span class="notif-badge" id="notifBadge" style="display: none;">0</span>
+        </button>
+        <!-- Notifications Dropdown -->
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header">
+            <span class="notif-title">Server Push Notifications (SSE)</span>
+            <button class="notif-clear-btn" onclick="clearNotifications()">Clear</button>
+          </div>
+          <div class="notif-list" id="notifList">
+            <div class="notif-empty">No proactive notifications yet. Waiting for server push events...</div>
+          </div>
+          <div class="notif-footer">
+            <button class="test-sound-btn" onclick="playUniqueNotificationSound()" title="Audition the unique marimba notification chime">
+              <span class="material-icons-round">music_note</span> Audition Chime
+            </button>
+            <button class="test-push-btn" onclick="triggerTestNotification()">
+              <span class="material-icons-round">bolt</span> Test Push
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ambient Dashboard Mode Toggle Button -->
+      <button class="status-btn ambient-mode-btn" id="ambientToggleBtn" onclick="toggleAmbientMode()" title="Switch to Ambient Dashboard (Echo Show Mode)">
+        <span class="material-icons-round">splitscreen</span>
+        <span class="btn-text">Ambient Mode</span>
+      </button>
+
+      <!-- Protocol Inspector Button -->
+      <button class="status-btn inspector-btn" id="inspectorToggleBtn" onclick="toggleInspector()" title="Toggle MCP Protocol Inspector">
+        <span class="material-icons-round">terminal</span>
+        <span class="btn-text">MCP Inspector</span>
+      </button>
+
+      <!-- Theme Switcher Button -->
+      <button class="status-btn theme-switch-btn" id="statusBarThemeBtn" onclick="toggleTheme()" title="Switch Theme (Warm Alabaster / Echo Obsidian)">
+        <span class="material-icons-round" id="statusBarThemeIcon">dark_mode</span>
+        <span class="btn-text" id="statusBarThemeText">Obsidian</span>
+      </button>
+
+      <!-- Reconnect Button -->
+      <button class="status-btn reconnect-btn" id="reconnectBtn" onclick="reconnect()" title="Reconnect MCP Session">
+        <span class="material-icons-round">refresh</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Proactive Notification Toaster Stack (Top-Right Floating) -->
+  <div class="notification-toaster" id="notificationToaster"></div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       VIEW 1: AMBIENT DASHBOARD MODE (Echo Show Nordic Linen Edition)
+       ══════════════════════════════════════════════════════════════════ -->
+  <div class="ambient-dashboard" id="ambientDashboard">
+    <div class="ambient-content">
+      <!-- Ambient Top Navigation Bar -->
+      <div class="ambient-header">
+        <div class="ambient-brand">
+          <div class="alexa-ring-sm ambient-pulse">
+            <div class="alexa-pulse-sm"></div>
+          </div>
+          <span class="ambient-logo-text">Alexa<span class="plus">+</span> <span class="ambient-badge">Echo Show Live</span></span>
+        </div>
+        <div class="ambient-time-center interactive-feature" onclick="triggerTimeSampleEvent()" title="Click to hear Time & Calendar announcement">
+          <div class="ambient-clock" id="ambientClock">--:-- --</div>
+          <div class="ambient-date" id="ambientDate">Loading date...</div>
+        </div>
+        <div class="ambient-actions">
+          <button class="ambient-btn" onclick="refreshAmbientData()" title="Refresh Ambient Feed">
+            <span class="material-icons-round">sync</span> Refresh
+          </button>
+          <button class="ambient-btn exit-ambient-btn" onclick="toggleAmbientMode()" title="Exit to Assistant Chat">
+            <span class="material-icons-round">chat</span> Chat Mode
+          </button>
+        </div>
+      </div>
+
+      <!-- Ambient Grid Widgets -->
+      <div class="ambient-grid">
+        <!-- Widget 1: Weather Hero Widget (Clickable Sample Event) -->
+        <div class="ambient-card ambient-weather-card interactive-feature" onclick="triggerWeatherSampleEvent()" title="Click to trigger Weather Forecast Sample Event">
+          <div class="ambient-card-header">
+            <div class="card-title">
+              <span class="material-icons-round">wb_sunny</span>
+              <span>Weather</span>
+              <span class="feature-click-badge">Click to Inspect</span>
+            </div>
+            <span class="card-badge" id="ambientWeatherLoc">Seattle, WA</span>
+          </div>
+          <div class="ambient-weather-main">
+            <div class="ambient-temp-display">
+              <span class="temp-big" id="ambientTemp">68°</span>
+              <div class="temp-meta">
+                <span class="ambient-condition" id="ambientCondition">Partly Cloudy</span>
+                <span class="ambient-feels" id="ambientFeels">Feels like 67°</span>
+              </div>
+            </div>
+            <div class="ambient-weather-icon-wrapper">
+              <span class="material-icons-round weather-giant-icon" id="ambientWeatherIcon">wb_sunny</span>
+            </div>
+          </div>
+          <div class="ambient-weather-metrics">
+            <div class="metric-item">
+              <span class="metric-label">Humidity</span>
+              <span class="metric-val" id="ambientHumidity">54%</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Wind</span>
+              <span class="metric-val" id="ambientWind">8 mph NW</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">UV Index</span>
+              <span class="metric-val" id="ambientUv">3 Moderate</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Air Quality</span>
+              <span class="metric-val" id="ambientAqi">Good (32)</span>
+            </div>
+          </div>
+          <!-- 5-day mini forecast -->
+          <div class="ambient-forecast-row" id="ambientForecastRow">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Widget 2: Smart Home Quick Controls (Clickable Sample Device Events) -->
+        <div class="ambient-card ambient-smarthome-card">
+          <div class="ambient-card-header">
+            <div class="card-title">
+              <span class="material-icons-round">home</span>
+              <span>Smart Home</span>
+              <span class="feature-click-badge">Interactive</span>
+            </div>
+            <span class="card-badge active-badge" id="ambientDeviceCount">8 Devices Connected</span>
+          </div>
+          <div class="ambient-devices-grid">
+            <div class="device-tile active" id="tileLivingLights" onclick="toggleSmartDevice('Living Room Lights', 'living')" title="Click to toggle living room lights event">
+              <div class="tile-icon"><span class="material-icons-round">lightbulb</span></div>
+              <div class="tile-info">
+                <span class="tile-name">Living Room</span>
+                <span class="tile-state" id="stateLivingLights">On · 80%</span>
+              </div>
+            </div>
+            <div class="device-tile" id="tileBedLights" onclick="toggleSmartDevice('Bedroom Lights', 'bed')" title="Click to toggle bedroom lights event">
+              <div class="tile-icon"><span class="material-icons-round">bed</span></div>
+              <div class="tile-info">
+                <span class="tile-name">Bedroom</span>
+                <span class="tile-state" id="stateBedLights">Off</span>
+              </div>
+            </div>
+            <div class="device-tile active" id="tileThermostat" onclick="adjustThermostat()" title="Click to inspect thermostat HVAC event">
+              <div class="tile-icon"><span class="material-icons-round">thermostat</span></div>
+              <div class="tile-info">
+                <span class="tile-name">Thermostat</span>
+                <span class="tile-state" id="stateThermostat">Heating · 72°F</span>
+              </div>
+            </div>
+            <div class="device-tile locked" id="tileDoorLock" onclick="toggleDoorLock()" title="Click to toggle lock security event">
+              <div class="tile-icon"><span class="material-icons-round" id="iconDoorLock">lock</span></div>
+              <div class="tile-info">
+                <span class="tile-name">Front Door</span>
+                <span class="tile-state" id="stateDoorLock">Locked</span>
+              </div>
+            </div>
+          </div>
+          <!-- Quick Thermostat Adjuster -->
+          <div class="thermostat-quick-bar">
+            <span class="bar-label">Target Temperature:</span>
+            <button class="temp-step-btn" onclick="changeTemp(-1)" title="Decrease temperature">-</button>
+            <span class="target-temp-val" id="targetTempVal">72°F</span>
+            <button class="temp-step-btn" onclick="changeTemp(1)" title="Increase temperature">+</button>
+          </div>
+        </div>
+
+        <!-- Widget 3: Amazon Music Ambient Player (Clickable Track Event) -->
+        <div class="ambient-card ambient-music-card interactive-feature" onclick="triggerMusicSampleEvent(event)" title="Click to cycle music playback event">
+          <div class="ambient-card-header">
+            <div class="card-title">
+              <span class="material-icons-round">music_note</span>
+              <span>Amazon Music</span>
+              <span class="feature-click-badge">Click to Play</span>
+            </div>
+            <div class="audio-bars active" id="ambientAudioBars">
+              <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            </div>
+          </div>
+          <div class="music-player-layout">
+            <div class="vinyl-art-wrap">
+              <div class="vinyl-disc spinning" id="ambientVinyl">
+                <div class="vinyl-center"></div>
+              </div>
+            </div>
+            <div class="track-details">
+              <span class="track-title" id="ambientTrackTitle">Levitating</span>
+              <span class="track-artist" id="ambientTrackArtist">Dua Lipa — Future Nostalgia</span>
+              <div class="music-progress-bar">
+                <div class="progress-fill" id="musicProgressFill" style="width: 45%;"></div>
+              </div>
+              <div class="music-controls">
+                <button class="music-btn" onclick="event.stopPropagation(); triggerPreviousTrackEvent();" title="Previous Track"><span class="material-icons-round">skip_previous</span></button>
+                <button class="music-btn play-btn" id="ambientPlayBtn" onclick="event.stopPropagation(); toggleMusicPlay();" title="Play/Pause"><span class="material-icons-round" id="musicPlayIcon">pause</span></button>
+                <button class="music-btn" onclick="event.stopPropagation(); triggerNextTrackEvent();" title="Next Track"><span class="material-icons-round">skip_next</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Widget 4: Routine Orchestration Station (Clickable Chained Pipelines) -->
+        <div class="ambient-card ambient-routines-card">
+          <div class="ambient-card-header">
+            <div class="card-title">
+              <span class="material-icons-round">auto_mode</span>
+              <span>Multi-Skill Routines</span>
+              <span class="feature-click-badge">Click to Run</span>
+            </div>
+            <span class="card-badge">Chained MCP Pipeline</span>
+          </div>
+          <div class="routine-shortcuts">
+            <button class="ambient-routine-tile" onclick="triggerRoutine('good_morning')">
+              <div class="routine-icon sun"><span class="material-icons-round">wb_sunny</span></div>
+              <div class="routine-meta">
+                <span class="routine-name">Good Morning</span>
+                <span class="routine-sub">Lights + Weather + Events + News + Traffic</span>
+              </div>
+              <span class="material-icons-round run-arrow">play_arrow</span>
+            </button>
+            <button class="ambient-routine-tile" onclick="triggerRoutine('good_night')">
+              <div class="routine-icon moon"><span class="material-icons-round">bedtime</span></div>
+              <div class="routine-meta">
+                <span class="routine-name">Good Night</span>
+                <span class="routine-sub">Lights off + Lock doors + 68°F + Sleep sounds</span>
+              </div>
+              <span class="material-icons-round run-arrow">play_arrow</span>
+            </button>
+            <button class="ambient-routine-tile" onclick="triggerRoutine('leaving_home')">
+              <div class="routine-icon car"><span class="material-icons-round">directions_car</span></div>
+              <div class="routine-meta">
+                <span class="routine-name">Leaving Home</span>
+                <span class="routine-sub">All lights off + Lock up + Traffic check</span>
+              </div>
+              <span class="material-icons-round run-arrow">play_arrow</span>
+            </button>
+            <button class="ambient-routine-tile" onclick="triggerRoutine('arriving_home')">
+              <div class="routine-icon house"><span class="material-icons-round">home</span></div>
+              <div class="routine-meta">
+                <span class="routine-name">Arriving Home</span>
+                <span class="routine-sub">Warm lights + 72°F + Unlock + Welcome music</span>
+              </div>
+              <span class="material-icons-round run-arrow">play_arrow</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live News Ticker at Bottom (Clickable Sample Flash Event) -->
+      <div class="ambient-news-ticker interactive-feature" onclick="triggerNewsSampleEvent()" title="Click to open Flash Briefing Sample Event">
+        <div class="ticker-badge">
+          <span class="material-icons-round">campaign</span>
+          <span>FLASH BRIEFING</span>
+        </div>
+        <div class="ticker-content" id="ambientTickerText">
+          Loading live flash headlines via alexa_news Agent Skill...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       VIEW 2: MAIN ASSISTANT & CHAT VIEW
+       ══════════════════════════════════════════════════════════════════ -->
+  <div class="app-container" id="mainAppContainer">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="alexa-logo">
+          <div class="alexa-ring-sm">
+            <div class="alexa-pulse-sm"></div>
+          </div>
+          <span class="logo-text">Alexa<span class="plus">+</span></span>
+        </div>
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
+          <span class="material-icons-round">menu_open</span>
+        </button>
+      </div>
+
+      <!-- Quick Routine Trigger Card -->
+      <div class="sidebar-routines">
+        <h3 class="section-label">
+          <span class="material-icons-round">auto_mode</span>
+          <span>One-Tap Routines</span>
+        </h3>
+        <div class="routine-pill-group">
+          <button class="routine-pill" onclick="triggerRoutine('good_morning')">
+            <span class="material-icons-round">wb_sunny</span> Good Morning
+          </button>
+          <button class="routine-pill" onclick="triggerRoutine('good_night')">
+            <span class="material-icons-round">bedtime</span> Good Night
+          </button>
+          <button class="routine-pill" onclick="triggerRoutine('leaving_home')">
+            <span class="material-icons-round">directions_car</span> Leaving Home
+          </button>
+          <button class="routine-pill" onclick="triggerRoutine('arriving_home')">
+            <span class="material-icons-round">home</span> Arriving Home
+          </button>
+        </div>
+      </div>
+
+      <!-- Agent Skills Panel -->
+      <div class="skills-section">
+        <div class="section-label-row">
+          <h3 class="section-label">
+            <span class="material-icons-round">extension</span>
+            <span>Agent Skills</span>
+          </h3>
+          <span class="skills-counter" id="skillsCount">10 Active</span>
+        </div>
+        <div class="skills-grid" id="skillsGrid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Conversational Memory Widget -->
+      <div class="memory-card" id="sidebarMemoryCard">
+        <div class="memory-header">
+          <div class="memory-title">
+            <span class="material-icons-round">psychology</span>
+            <span>Session Memory</span>
+          </div>
+          <button class="memory-inspect-btn" onclick="openMemoryInspector()" title="Inspect Memory Graph">
+            Inspect
+          </button>
+        </div>
+        <div class="memory-tags" id="memoryTagsList">
+          <span class="mem-tag" onclick="triggerMemorySampleEvent('location')">📍 Location: Seattle</span>
+          <span class="mem-tag" onclick="triggerMemorySampleEvent('device')">💡 Device: Living Room</span>
+          <span class="mem-tag" onclick="triggerMemorySampleEvent('music')">🎵 Music: Pop/Jazz</span>
+        </div>
+      </div>
+
+      <!-- MCP Protocol Specs Card -->
+      <div class="protocol-card">
+        <div class="protocol-header">
+          <span class="material-icons-round">cable</span>
+          <span>MCP Transport Info</span>
+        </div>
+        <div class="protocol-detail">
+          <span class="label">Transport</span>
+          <span class="value" id="protoTransport">Streamable HTTP</span>
+        </div>
+        <div class="protocol-detail">
+          <span class="label">Spec Version</span>
+          <span class="value" id="protoVersion">2025-11-25</span>
+        </div>
+        <div class="protocol-detail">
+          <span class="label">Session ID</span>
+          <span class="value session-id" id="protoSession">—</span>
+        </div>
+        <div class="protocol-detail">
+          <span class="label">SSE Push</span>
+          <span class="value" id="protoSSE">Inactive</span>
+        </div>
+        <div class="protocol-detail">
+          <span class="label">Orchestration</span>
+          <span class="value status-highlight">Chained DAG ✓</span>
+        </div>
+      </div>
+
+      <!-- Recent conversations -->
+      <div class="recent-section">
+        <h3 class="section-label">Recent Queries</h3>
+        <div id="recentList">
+          <div class="recent-item-empty">No queries yet</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Chat & Interaction Area -->
+    <main class="main-area">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-left">
+          <button class="icon-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+            <span class="material-icons-round">menu</span>
+          </button>
+          <div class="alexa-name">
+            <h1>Alexa<span class="plus">+</span></h1>
+            <span class="subtitle">Streamable HTTP MCP · Multi-Skill Orchestrator</span>
+          </div>
+        </div>
+
+        <!-- Integrated Header Audio Waveform Canvas (Clickable voice test) -->
+        <div class="header-waveform-wrap interactive-feature" onclick="triggerWaveformSampleEvent()" title="Click to test dynamic audio waveform voice synthesis">
+          <canvas id="headerWaveformCanvas" width="240" height="36"></canvas>
+          <span class="wave-state-tag" id="waveStateTag">Idle</span>
+        </div>
+
+        <div class="top-actions">
+          <button class="icon-btn primary-action-btn" onclick="toggleAmbientMode()" title="Switch to Ambient Dashboard (Echo Show Mode)">
+            <span class="material-icons-round">splitscreen</span>
+            <span class="action-label">Ambient Mode</span>
+          </button>
+          <button class="icon-btn" onclick="toggleInspector()" title="Toggle MCP Protocol Inspector">
+            <span class="material-icons-round">terminal</span>
+          </button>
+          <button class="icon-btn" onclick="clearConversation()" title="Clear conversation">
+            <span class="material-icons-round">delete_sweep</span>
+          </button>
+          <button class="icon-btn theme-btn" onclick="toggleTheme()" title="Toggle Warm Linen / Cozy Dark Theme">
+            <span class="material-icons-round" id="themeIcon">wb_sunny</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Chat Messages Container -->
+      <div class="chat-container" id="chatContainer">
+        <!-- Welcome Screen (Initial empty state) -->
+        <div class="welcome-screen" id="welcomeScreen">
+          <div class="alexa-orb-container" onclick="triggerOrbSampleEvent()" title="Click Alexa Orb for speech greeting">
+            <div class="alexa-orb" id="heroAlexaOrb">
+              <div class="alexa-ring">
+                <div class="alexa-inner-ring">
+                  <div class="alexa-pulse"></div>
+                </div>
+              </div>
+            </div>
+            <canvas id="orbRippleCanvas" class="orb-ripple-canvas" width="200" height="200"></canvas>
+          </div>
+
+          <h2 class="welcome-title">Hello, I'm Alexa<span class="plus">+</span></h2>
+          <p class="welcome-subtitle">Powered by Model Context Protocol (MCP 2025-11-25) & Streamable HTTP Transport with Agent Skills</p>
+
+          <!-- Highlight Routine Banner -->
+          <div class="hero-routine-banner" onclick="triggerRoutine('good_morning')" title="Click to execute Good Morning Multi-Skill Routine">
+            <div class="routine-banner-icon">
+              <span class="material-icons-round">auto_mode</span>
+            </div>
+            <div class="routine-banner-text">
+              <span class="banner-title">Try Multi-Skill Orchestration</span>
+              <span class="banner-desc">"Run Good Morning Routine" — seamlessly chains Weather + Calendar + News + Traffic + Smart Home</span>
+            </div>
+            <button class="banner-run-btn">Run Pipeline ⚡</button>
+          </div>
+
+          <!-- Suggestion Cards Grid -->
+          <div class="suggestion-grid">
+            <button class="suggestion-card" onclick="triggerRoutine('good_morning')">
+              <span class="material-icons-round color-orange">wb_sunny</span>
+              <div class="sug-info">
+                <span class="sug-title">Run Good Morning Routine</span>
+                <span class="sug-desc">Chained multi-skill pipeline</span>
+              </div>
+            </button>
+            <button class="suggestion-card" onclick="sendSuggestion('What\'s the weather forecast in Seattle?')">
+              <span class="material-icons-round color-cyan">cloud_queue</span>
+              <div class="sug-info">
+                <span class="sug-title">Weather in Seattle</span>
+                <span class="sug-desc">Conditions, hourly, UV index</span>
+              </div>
+            </button>
+            <button class="suggestion-card" onclick="sendSuggestion('Turn on the living room lights and set thermostat to 72')">
+              <span class="material-icons-round color-green">lightbulb</span>
+              <div class="sug-info">
+                <span class="sug-title">Smart Home Control</span>
+                <span class="sug-desc">Lights, locks, thermostat</span>
+              </div>
+            </button>
+            <button class="suggestion-card" onclick="sendSuggestion('Play Levitating by Dua Lipa')">
+              <span class="material-icons-round color-purple">headphones</span>
+              <div class="sug-info">
+                <span class="sug-title">Play Amazon Music</span>
+                <span class="sug-desc">Songs, playlists, playback</span>
+              </div>
+            </button>
+            <button class="suggestion-card" onclick="sendSuggestion('What are the top breaking news headlines?')">
+              <span class="material-icons-round color-yellow">article</span>
+              <div class="sug-info">
+                <span class="sug-title">Flash Briefing</span>
+                <span class="sug-desc">Top stories & tech news</span>
+              </div>
+            </button>
+            <button class="suggestion-card" onclick="sendSuggestion('Check my Amazon package delivery status')">
+              <span class="material-icons-round color-blue">local_shipping</span>
+              <div class="sug-info">
+                <span class="sug-title">Track Amazon Orders</span>
+                <span class="sug-desc">Real-time package updates</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Rendered Chat Messages List -->
+        <div class="messages-list" id="messagesList"></div>
+      </div>
+
+      <!-- Large Interactive Audio Waveform Bar (Clickable) -->
+      <div class="main-waveform-section interactive-feature" id="mainWaveformSection" onclick="triggerWaveformSampleEvent()" title="Click to cycle voice synthesis waveform modes">
+        <canvas id="audioWaveformCanvas" class="audio-waveform-canvas" height="60"></canvas>
+        <div class="waveform-legend">
+          <span class="waveform-indicator" id="waveformIndicator">● Idle</span>
+          <span class="waveform-meta">Audio Synthesis & Voice Activity Visualizer (Click to test states)</span>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="input-area">
+        <!-- Quick Skill Chips Carousel -->
+        <div class="skill-chips" id="skillChips">
+          <button class="chip routine-chip" onclick="triggerRoutine('good_morning')">
+            <span class="material-icons-round">wb_sunny</span>Good Morning
+          </button>
+          <button class="chip routine-chip" onclick="triggerRoutine('good_night')">
+            <span class="material-icons-round">bedtime</span>Good Night
+          </button>
+          <button class="chip" onclick="sendSuggestion('What\'s the weather today?')">
+            <span class="material-icons-round">wb_sunny</span>Weather
+          </button>
+          <button class="chip" onclick="sendSuggestion('Turn on living room lights')">
+            <span class="material-icons-round">home</span>Smart Home
+          </button>
+          <button class="chip" onclick="sendSuggestion('Play some upbeat music')">
+            <span class="material-icons-round">music_note</span>Music
+          </button>
+          <button class="chip" onclick="sendSuggestion('Track my package')">
+            <span class="material-icons-round">shopping_cart</span>Shopping
+          </button>
+          <button class="chip" onclick="sendSuggestion('How long to drive downtown?')">
+            <span class="material-icons-round">traffic</span>Traffic
+          </button>
+          <button class="chip" onclick="sendSuggestion('What\'s on my calendar today?')">
+            <span class="material-icons-round">calendar_month</span>Calendar
+          </button>
+          <button class="chip" onclick="sendSuggestion('Explain how MCP Streamable HTTP works')">
+            <span class="material-icons-round">auto_awesome</span>Ask AI
+          </button>
+        </div>
+
+        <!-- Input Row -->
+        <div class="input-row">
+          <div class="input-wrapper">
+            <input
+              type="text"
+              id="userInput"
+              class="user-input"
+              placeholder="Ask Alexa+ anything, or run a multi-skill routine..."
+              autocomplete="off"
+              onkeydown="handleKeyDown(event)"
+              oninput="handleUserTyping()"
+            >
+            <button class="mic-btn" id="micBtn" onclick="toggleVoice()" title="Voice input (Speech Recognition)">
+              <span class="material-icons-round" id="micIcon">mic</span>
+            </button>
+          </div>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send Command">
+            <span class="material-icons-round">send</span>
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       VIEW 3: MCP PROTOCOL INSPECTOR (DevTools-style Drawer)
+       ══════════════════════════════════════════════════════════════════ -->
+  <div class="inspector-drawer" id="inspectorDrawer">
+    <div class="inspector-header">
+      <div class="inspector-title-group">
+        <span class="material-icons-round">developer_mode</span>
+        <span class="inspector-title">MCP Protocol Inspector</span>
+        <span class="inspector-spec-badge">Spec 2025-11-25</span>
+      </div>
+
+      <!-- Inspector Tabs -->
+      <div class="inspector-tabs">
+        <button class="insp-tab active" onclick="switchInspectorTab('network')">
+          <span class="material-icons-round">swap_horiz</span> Network (<span id="netCount">0</span>)
+        </button>
+        <button class="insp-tab" onclick="switchInspectorTab('sse')">
+          <span class="material-icons-round">stream</span> SSE Stream (<span id="sseCount">0</span>)
+        </button>
+        <button class="insp-tab" onclick="switchInspectorTab('memory')">
+          <span class="material-icons-round">psychology</span> Memory
+        </button>
+        <button class="insp-tab" onclick="switchInspectorTab('tools')">
+          <span class="material-icons-round">build</span> Registered Skills
+        </button>
+      </div>
+
+      <div class="inspector-actions">
+        <button class="icon-btn-sm" onclick="triggerSampleInspectorEvent()" title="Trigger Sample MCP Event (Delivery Push, Tool Stream)">
+          <span class="material-icons-round">bolt</span>
+        </button>
+        <button class="icon-btn-sm" onclick="clearInspectorLogs()" title="Clear logs">
+          <span class="material-icons-round">block</span>
+        </button>
+        <button class="icon-btn-sm" onclick="exportInspectorLogs()" title="Export JSON logs">
+          <span class="material-icons-round">download</span>
+        </button>
+        <button class="icon-btn-sm" onclick="toggleInspector()" title="Close Inspector">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Inspector Tab Content: Network Log List + Detail Pane -->
+    <div class="inspector-body" id="inspectorBody">
+      <!-- Network Tab -->
+      <div class="insp-pane active" id="paneNetwork">
+        <div class="network-split">
+          <div class="network-table-wrap">
+            <table class="network-table">
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Status</th>
+                  <th>Type</th>
+                  <th>Time</th>
+                  <th>Latency</th>
+                </tr>
+              </thead>
+              <tbody id="networkTableBody">
+                <!-- Log rows rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+          <div class="network-detail-pane" id="networkDetailPane">
+            <div class="detail-placeholder">Select a request to inspect headers and JSON-RPC payload</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SSE Stream Tab -->
+      <div class="insp-pane" id="paneSSE">
+        <div class="sse-stream-view" id="sseStreamView">
+          <!-- Live events logged here -->
+        </div>
+      </div>
+
+      <!-- Memory Tab -->
+      <div class="insp-pane" id="paneMemory">
+        <div class="memory-inspector-view" id="memoryInspectorView">
+          <div class="mem-view-header">
+            <h4>Conversational Session Memory Context</h4>
+            <button class="reload-mem-btn" onclick="fetchServerMemory()"><span class="material-icons-round">refresh</span> Sync Server Memory</button>
+          </div>
+          <div id="memoryContentsList">Loading session memory...</div>
+        </div>
+      </div>
+
+      <!-- Tools Tab -->
+      <div class="insp-pane" id="paneTools">
+        <div class="tools-inspector-view" id="toolsInspectorView">
+          <!-- List of registered MCP tools with input schemas -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       SKILL PIPELINE DAG MODAL
+       ══════════════════════════════════════════════════════════════════ -->
+  <div class="dag-modal-overlay" id="dagModalOverlay" onclick="closeDAGModal(event)">
+    <div class="dag-modal-card" onclick="event.stopPropagation()">
+      <div class="dag-modal-header">
+        <div class="dag-title-row">
+          <span class="material-icons-round">account_tree</span>
+          <h3 id="dagModalTitle">Skill Pipeline DAG: Good Morning Routine</h3>
+        </div>
+        <button class="icon-btn-sm" onclick="closeDAGModal()"><span class="material-icons-round">close</span></button>
+      </div>
+      <div class="dag-modal-body" id="dagModalBody">
+        <!-- SVG Visual DAG Graph rendered here -->
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

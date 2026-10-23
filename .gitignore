@@ -1,0 +1,16 @@
+node_modules/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.secret
+coverage/
+dist/
+build/
+.DS_Store
+Thumbs.db

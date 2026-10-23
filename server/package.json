@@ -1,0 +1,16 @@
+{
+  "name": "alexa-plus-mcp-server",
+  "version": "1.0.0",
+  "description": "Alexa+ MCP Server with Streamable HTTP Transport and Agent Skills",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "uuid": "^11.1.0"
+  }
+}
