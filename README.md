@@ -1,113 +1,268 @@
-# Alexa+ — MCP Powered Next-Gen AI Assistant & Ambient Dashboard
+# Alexa+ MCP Assistant
 
-A flagship implementation of the **Alexa+** next-generation assistant built on the open **Model Context Protocol (MCP 2025-11-25)** standards, featuring **Streamable HTTP transport**, **Agent Skills**, **Multi-Skill Chained Orchestration**, **Warm Neutrals Aesthetics (Off-Whites & Beiges)**, **Unique Acoustic Notification Sounds**, and **Interactive Feature Sample Events**.
+Alexa+ is a browser-based assistant and ambient dashboard demo built around the
+[Model Context Protocol (MCP)](https://modelcontextprotocol.io/) using
+Streamable HTTP and Server-Sent Events (SSE).
 
----
+The project demonstrates how a web client can discover MCP tools, maintain a
+session, call skills, stream progress, receive proactive notifications, and
+render a rich assistant experience without a frontend framework.
 
-## 🌟 Standout Features & Enhancements
+> **Demo scope:** The application uses deterministic, in-memory demo data. It
+> does not connect to real Amazon, Alexa, calendar, music, weather, traffic, or
+> smart-home services.
 
-### 1. 🎨 Warm Neutrals Aesthetics (Off-Whites & Beiges)
-- **Nordic Linen / Luxury Sand Design**: Built with warm neutrals inspired by minimalist luxury home displays (Google Nest Hub / Echo Show in sand/linen finish).
-- **Harmonious Palette**:
-  - Soft Alabaster & Off-White backgrounds (`#f8f6f0`).
-  - Warm Oatmeal & Sand surfaces (`#efece2`, `#e5e0d3`).
-  - Frosted Cream Glass cards (`rgba(255, 253, 248, 0.94)`).
-  - Deep Charcoal Espresso typography (`#23201d`) for readability and contrast.
-  - Warm Honey Amber (`#d97706`), Terracotta, and Coastal Sky Blue accents.
-- **Ambient Golden Dust Particles**: Floating warm ambient particles with subtle constellation proximity lines.
+## Features
 
-### 2. 🔔 Unique Acoustic Notification Sound Engine
-- **Custom Acoustic Marimba & Glass Chime**: Synthesized via the Web Audio API with zero external audio file dependencies.
-- **Physical Acoustic Modeling**:
-  - 4-note arpeggiated chord: **E5 (659 Hz) ➔ G#5 (830 Hz) ➔ B5 (987 Hz) ➔ E6 (1318 Hz)** with natural 65ms stagger.
-  - Fundamental sine wave blended with soft octave overtones for wooden mallet texture.
-  - Warm low-pass biquad filter (`2600 Hz`) to soften digital transients.
-  - Expansive stereo spatial panning across the soundstage.
-  - Tactile haptic droplet ping (`playHapticClick()`) on every interactive click.
-- **Audition Button**: Accessible in the notification dropdown for immediate auditioning.
+- MCP `2025-11-25` initialization and session management
+- Ten discoverable agent skills
+- JSON-RPC 2.0 tool calls over HTTP
+- SSE responses for tool and routine progress
+- Persistent SSE channel for proactive notifications
+- Multi-skill routines with progress tracking
+- Conversation-memory resource with the latest 50 tool interactions
+- Ambient dashboard with weather, news, clock, music, and smart-home widgets
+- MCP Inspector for network requests, SSE events, memory, and tool schemas
+- Interactive DAG visualization for routine pipelines
+- Browser speech recognition when supported
+- Web Audio API notification chimes and waveform animation
+- Warm Alabaster and Echo Obsidian themes
 
-### 3. 🎯 Interactive Feature Sample Events (Click Any Feature)
-Every widget, card, and control responds dynamically with interactive sample events:
-- **🌤️ Weather Card**: Clicking triggers a live **Weather Radar & Forecast Event** with hourly metrics, UV index breakdown, and spoken response.
-- **🏠 Smart Home Tiles**: Clicking living room/bedroom lights, thermostat, or door locks toggles states, animates wattage draw, plays tactile clicks, and pushes simulated device events.
-- **🎵 Music Widget & Vinyl Disc**: Clicking the vinyl disc or track cycles through curated Amazon Music tracks ("Levitating", "Blinding Lights", "Shape of You", "Anti-Hero"), starts spinning disc animations, animates equalizer bars, and emits Now Playing alerts.
-- **📰 Flash Briefing Ticker**: Clicking opens a live news digest event with top story readouts.
-- **⏰ Ambient Clock**: Clicking plays a grandfather clock bell chime and announces current time and upcoming schedule.
-- **🧠 Memory Tags**: Clicking `📍 Location: Seattle` or `💡 Device: Living Room` triggers contextual follow-up turns.
-- **🎤 Waveform Bar**: Clicking cycles through voice synthesis modes (`idle` ➔ `listening` ➔ `thinking` ➔ `speaking`) with live frequency modulation.
-- **⚡ Protocol Inspector**: Includes an interactive **Test MCP Event** button to simulate live tool streaming and proactive delivery alerts.
+## Architecture
 
-### 4. 🌊 Ambient Dashboard Mode (Echo Show 15 Style)
-- Full-screen or togglable Echo Show dashboard with live ambient clock, date, real-time weather, interactive smart home controls, music player, and news ticker.
-
-### 5. ⚡ Multi-Skill Orchestration & Routine Pipelines
-- Orchestrates chained multi-skill routines:
-  - **Good Morning**: `bedroom lights` (turn on) ➔ `alexa_weather` (forecast) ➔ `alexa_calendar` (schedule) ➔ `alexa_news` (flash briefing) ➔ `alexa_traffic` (commute check).
-  - **Good Night**: `all lights` (turn off) ➔ `front door` (lock) ➔ `thermostat` (68°F) ➔ `alexa_calendar` (next event) ➔ `alexa_music` (sleep sounds).
-- Real-time step progress tracking (`0%` ➔ `100%`) with visual badges (`pending`, `running`, `completed`).
-
-### 6. 📊 Skill Pipeline DAG (Visual Graph)
-- Interactive SVG DAG visualizer displaying execution flow:
-  `Trigger` ➔ `Smart Home` ➔ `Weather` ➔ `Calendar` ➔ `News` ➔ `Traffic` ➔ `Alexa+ Synthesis`.
-
-### 7. 🔍 MCP Protocol Inspector (DevTools-Style)
-- Integrated debugger drawer featuring Network request tables, Split JSON-RPC 2.0 payload viewers, SSE live event logs, and registered skills inspection.
-
----
-
-## 🏗️ Architecture
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│  Alexa+ Web Client  (http://127.0.0.1:3000)                             │
-│  ────────────────────────────────────────                              │
-│  • Warm Neutrals Palette (Off-Whites, Beiges, Sand, Linen)             │
-│  • Unique Acoustic Marimba Chime & Haptic Audio Synthesizer            │
-│  • Interactive Feature Sample Events on Every Card/Widget              │
-│  • Echo Show Ambient Dashboard Mode (Weather, Clock, Smart Home, Music)│
-│  • Canvas Audio Waveforms (Dynamic States: Idle/Listen/Think/Speak)   │
-│  • Multi-Skill Pipeline Orchestrator & SVG DAG Graph Visualizer        │
-│  • DevTools-Style MCP Protocol Inspector & JSON Payload Viewer         │
-└────────────────────────────────────┬───────────────────────────────────┘
-                                     │  HTTP POST (JSON-RPC 2.0)
-                                     │  SSE Streaming (text/event-stream)
-                                     │  Persistent GET SSE Push Channel
-                                     ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│  MCP Server  (http://127.0.0.1:3001/mcp)                               │
-│  ───────────────────────────────────────                               │
-│  • Streamable HTTP Transport (MCP 2025-11-25)                           │
-│  • Session Management & UUID Tracking                                  │
-│  • Proactive Notification Scheduler (SSE push to active clients)       │
-│  • Session Memory Cache (`alexa://memory`)                             │
-│  • Routine Automation Engine (`alexa://routines`)                      │
-│                                                                        │
-│  10 Agent Skills:                                                      │
-│    🌤️ Weather     🏠 Smart Home    🛒 Shopping     🎵 Music           │
-│    📅 Calendar    📰 News          🤖 AI Assistant 🗺️ Traffic         │
-│    ⚡ Routines    🌊 Ambient Data                                      │
-└────────────────────────────────────────────────────────────────────────┘
+```text
+Browser client: http://127.0.0.1:3000
+        |
+        | JSON-RPC POST and SSE
+        v
+MCP server: http://127.0.0.1:3001
+        |
+        +-- /mcp       MCP transport
+        +-- /skills    skill metadata
+        +-- /routines  routine definitions
+        +-- /health    health information
 ```
 
----
+### Client
 
-## 🚀 Quick Start
+The client is plain HTML, CSS, and JavaScript:
 
-### 1. Start the MCP Server
+- [client/index.html](client/index.html) defines the dashboard, chat UI,
+  inspector, notifications, and routine modal.
+- [client/app.js](client/app.js) manages UI state, MCP requests, intent
+  parsing, SSE streams, audio, routines, and interactive widgets.
+- [client/style.css](client/style.css) contains themes, layouts, animations,
+  responsive rules, and component styling.
+- [client/serve.js](client/serve.js) serves the static client on port `3000`.
+
+### Server
+
+The Express server in [server/index.js](server/index.js) implements the MCP
+transport and simulated skill executors. Sessions, SSE connections, and
+conversation memory are stored in process memory and are cleared when the
+server restarts.
+
+## Available skills
+
+| Skill | Purpose |
+| --- | --- |
+| `alexa_weather` | Current conditions and forecasts |
+| `alexa_smart_home` | Simulated lights, locks, thermostat, and device status |
+| `alexa_shopping` | Product search, cart, orders, and package tracking |
+| `alexa_music` | Simulated playback, queue, and volume controls |
+| `alexa_calendar` | Events, reminders, and next-event lookup |
+| `alexa_news` | Simulated headlines and flash briefings |
+| `alexa_general_ai` | MCP explanations, time/date answers, jokes, and fallback responses |
+| `alexa_traffic` | Simulated route times, delays, incidents, and alternate routes |
+| `alexa_routine` | Multi-skill routine execution |
+| `alexa_ambient` | Aggregated dashboard data |
+
+## Built-in routines
+
+| Routine | Actions |
+| --- | --- |
+| `good_morning` | Bedroom lights, weather, calendar, news, and commute |
+| `good_night` | Lights off, lock door, set thermostat, calendar, and sleep sounds |
+| `leaving_home` | Lights off, lower thermostat, lock door, traffic, and weather |
+| `arriving_home` | Lights on, set thermostat, unlock door, music, and deliveries |
+
+## Requirements
+
+- Node.js 18 or newer
+- npm
+- A modern browser such as Chrome or Edge
+
+No API keys are required for the current demo implementation.
+
+## Run locally
+
+Open two terminals from the repository root.
+
+### Terminal 1: MCP server
+
 ```bash
 cd server
 npm install
 npm start
 ```
-Server runs at `http://127.0.0.1:3001`:
-- **MCP Endpoint**: `/mcp` (Streamable HTTP: POST, GET, DELETE)
-- **Skills Registry**: `/skills`
-- **Routines Definition**: `/routines`
-- **Health Check**: `/health`
 
-### 2. Start the Frontend Client
+The server listens on `http://127.0.0.1:3001`.
+
+For automatic restarts during development:
+
+```bash
+npm run dev
+```
+
+### Terminal 2: web client
+
 ```bash
 cd client
 npm start
 ```
-Open **[http://127.0.0.1:3000](http://127.0.0.1:3000)** in your browser.
+
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000).
+
+The client expects the MCP server at
+`http://127.0.0.1:3001`. Start the server before using chat, routines, or
+ambient data.
+
+## MCP API
+
+### `POST /mcp`
+
+Accepts JSON-RPC 2.0 MCP messages. The client uses:
+
+- `initialize`
+- `notifications/initialized`
+- `tools/list`
+- `tools/call`
+- `resources/list`
+- `resources/read`
+- `prompts/list`
+- `ping`
+
+Include `MCP-Session-Id` after initialization when making session-bound calls.
+Tool calls can request SSE with:
+
+```http
+Accept: text/event-stream
+MCP-Protocol-Version: 2025-11-25
+```
+
+### `GET /mcp`
+
+Opens a persistent `text/event-stream` connection for proactive notifications.
+The server emits keep-alive pings and notification events for the active
+session.
+
+### `DELETE /mcp`
+
+Terminates the session, clears its memory, and closes its SSE connections.
+
+### `GET /skills`
+
+Returns the server metadata, ten skill definitions, and available routine
+names.
+
+### `GET /routines`
+
+Returns the complete routine definitions, including each step's skill and
+arguments.
+
+### `GET /health`
+
+Returns server status, active session count, skill count, transport details,
+protocol version, and supported demo features.
+
+## Example JSON-RPC call
+
+After initialization, a weather request looks like this:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "tools/call",
+  "params": {
+    "name": "alexa_weather",
+    "arguments": {
+      "location": "Seattle",
+      "units": "fahrenheit"
+    }
+  }
+}
+```
+
+## How chat routing works
+
+The client uses the `parseIntent()` function in
+[client/app.js](client/app.js) to map common phrases to skills. For example:
+
+```text
+"What's the weather in Seattle?" -> alexa_weather
+"Turn on the living room lights" -> alexa_smart_home
+"Play some music"                -> alexa_music
+"Track my package"               -> alexa_shopping
+"Run Good Morning"               -> alexa_routine
+```
+
+Unmatched requests are sent to `alexa_general_ai`. This is a keyword-based
+demo router, not a production natural-language model.
+
+## Security and secrets
+
+- Do not commit API keys, access tokens, passwords, certificates, or private
+  keys.
+- Store local secrets in `.env` files or your operating system's secret store.
+- `.gitignore` excludes `.env` files, key/certificate extensions, dependency
+  folders, and build output.
+- The current demo does not require credentials.
+- The server binds to `127.0.0.1` and restricts browser origins to localhost
+  and loopback addresses.
+- Before exposing this application publicly, add authentication, persistent
+  storage, request validation, rate limiting, HTTPS, and production CORS
+  configuration.
+
+## Troubleshooting
+
+### The client shows “Connection failed”
+
+Confirm that the MCP server is running and that
+`http://127.0.0.1:3001/health` returns JSON. Then refresh the client or use
+the reconnect button.
+
+### No proactive notifications appear
+
+Allow the browser to keep the page open and confirm that the status bar shows
+`SSE Push Live`. Notifications are scheduled after each new MCP session and
+are only delivered while the SSE connection is open.
+
+### Audio or microphone features do not work
+
+Browser autoplay policies require an initial user interaction before audio can
+play. Speech recognition depends on browser support and microphone permission;
+Chrome and Edge provide the best support.
+
+### Port already in use
+
+The default ports are:
+
+- Client: `3000`
+- MCP server: `3001`
+
+Stop the process using the port or update the `PORT` constant in
+[client/serve.js](client/serve.js) or [server/index.js](server/index.js), and
+keep the client endpoint in [client/app.js](client/app.js) consistent.
+
+## Project status
+
+This repository is intended as a local MCP demonstration and UI prototype.
+The simulated skill results use hardcoded or randomized values, and no data is
+persisted between server restarts. Integrating real services requires replacing
+the executor functions in [server/index.js](server/index.js) with authenticated
+service clients and adding durable storage and production-grade observability.
+
+## License
+
+No license has been declared for this repository yet.
